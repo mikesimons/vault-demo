@@ -1,0 +1,42 @@
+version: "2"
+services:
+  consul:
+    image: consul
+    ports:
+      - 8500:8500
+  vault_a:
+    image: vault
+    command: vault server -config /vault/config
+    cap_add: 
+      - IPC_LOCK
+    ports:
+      - 8200:8200
+    environment:
+      VAULT_LOCAL_CONFIG: |
+        {
+          "storage": {
+            "consul": {
+              "address": "consul:8500",
+              "path": "vault"
+            }
+          },
+          "listener": {
+            "tcp": {
+              "address": "0.0.0.0:8200",
+              "tls_disable": 1
+            }
+          }
+        }
+  vault-ui:
+    image: djenriquez/vault-ui
+    ports:
+      - 8000:8000
+    environment:
+      VAULT_URL_DEFAULT: http://vault:8200
+      VAULT_AUTH_DEFAULT: TOKEN
+  mysql:
+    image: mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
